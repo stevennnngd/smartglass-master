@@ -1,4 +1,4 @@
-package com.steven.Smartglass;
+package com.steven.Smartglass.FacePP;
 
 import android.app.Activity;
 import android.content.Context;
@@ -15,7 +15,8 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Toast;
 
-import com.steven.Smartglass.FacePP.Faceset;
+import com.steven.Smartglass.R;
+import com.steven.Smartglass.ResultActivity;
 
 import java.io.File;
 import java.io.UnsupportedEncodingException;

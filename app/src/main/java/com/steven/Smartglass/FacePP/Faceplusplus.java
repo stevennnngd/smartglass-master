@@ -15,6 +15,9 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -51,8 +54,8 @@ public class Faceplusplus extends Thread {
         byte[] buff = getBytesFromFile(file);
         HashMap<String, String> map = new HashMap<>();
         HashMap<String, byte[]> byteMap = new HashMap<>();
-        map.put("api_key", "hylmMeoibMoMKo5H-FrMit571QL2e0yQ");
-        map.put("api_secret", "rWXV8-Dkf-4LTChwyhStdRjhiD-iSZNy");
+        map.put("api_key", "cbO8a7P4P6CLfXBLJcKf8ahE0OP1b0eK");
+        map.put("api_secret", "_T-Zxi2xJa-G3W4lZLq7plfdY5dV04mI");
         if (url == "https://api-cn.faceplusplus.com/facepp/v3/detect") {  //人脸识别
             map.put("return_attributes", "gender,age,ethnicity,smiling,glass");
         }
@@ -135,7 +138,7 @@ public class Faceplusplus extends Thread {
                         Trlower = lowerJsonDeco.getTrans_result().get(0).getDst();
                     }
                 } catch (Exception e) {
-                    handler.obtainMessage(FaceppMSGwhat, "没有检测到人脸,请再来一次吧").sendToTarget();
+                    handler.obtainMessage(FaceppMSGwhat, "没有检测到人体,请再来一次吧").sendToTarget();
                 }
                 if (uppervalue != null && lowervalue != null) {
                     finalstr = "你眼前是一位穿着" + Trupper + "衣服，" + Trlower + "裤子的" + gendervalue;
@@ -150,9 +153,9 @@ public class Faceplusplus extends Thread {
                     handler.obtainMessage(FaceppMSGwhat, finalstr).sendToTarget();
                 }
             } else if (url == "https://api-cn.faceplusplus.com/imagepp/beta/recognizetext") {//文字识别处理
-
-                String text = "";
                 String type = "";
+                String textvalue = "";
+                ArrayList<Textorder> textorder = new ArrayList<Textorder>();
                 TextjsonDeco textjson = gson.fromJson(str, TextjsonDeco.class);
                 try {
                     if ((textjson.getResult().size()) > 0) {
@@ -160,12 +163,22 @@ public class Faceplusplus extends Thread {
                             type = textjson.getResult().get(i).getType();
                             System.out.println("type:" + type);
                             if (type.equals("textline")) {
-                                finalstr = text + textjson.getResult().get(i).getValue() + "\n";
+                                textorder.add(new Textorder(textjson.getResult().get(i).getValue(),
+                                        textjson.getResult().get(i).getChildobjects().get(0).getPosition().get(0).getY()));
                             }
                         }
-                        finalstr = text;
-                        handler.obtainMessage(FaceppMSGwhat, finalstr).sendToTarget();
                     }
+                    Collections.sort(textorder, new Comparator<Textorder>() {
+                        public int compare(Textorder arg0, Textorder arg1) {
+                            return arg0.getY() - arg1.getY(); //按照Y升序
+                        }
+                    });
+                    for (Textorder e : textorder) {
+                        System.out.println("Y :" + e.getY() + "   文字:" + e.getTextorder());
+                        textvalue = textvalue + e.getTextorder() + ",";
+                    }
+                    finalstr = textvalue;
+                    handler.obtainMessage(FaceppMSGwhat, finalstr).sendToTarget();
                 } catch (Exception e) {
                     handler.obtainMessage(FaceppMSGwhat, "没有检测到可识别的文字,请再来一次吧").sendToTarget();
                 }
@@ -221,6 +234,32 @@ public class Faceplusplus extends Thread {
             }
         } catch (Exception e) {
             e.printStackTrace();
+        }
+    }
+
+    class Textorder {
+        String textorder;
+        int y;
+
+        public Textorder(String textorder, int y) {
+            this.textorder = textorder;
+            this.y = y;
+        }
+
+        public String getTextorder() {
+            return textorder;
+        }
+
+        public void setTextorder(String textorder) {
+            this.textorder = textorder;
+        }
+
+        public int getY() {
+            return y;
+        }
+
+        public void setY(int y) {
+            this.y = y;
         }
     }
 

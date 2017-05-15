@@ -5,6 +5,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.media.AudioManager;
+import android.media.SoundPool;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
@@ -30,7 +32,11 @@ import com.iflytek.cloud.WakeuperListener;
 import com.iflytek.cloud.WakeuperResult;
 import com.iflytek.cloud.util.ResourceUtil;
 import com.steven.Smartglass.Baidutranslate.TransApi;
+import com.steven.Smartglass.Clarifai.Clarifai;
+import com.steven.Smartglass.Clarifai.Clarifaitr;
+import com.steven.Smartglass.FacePP.FaceAndColthes;
 import com.steven.Smartglass.FacePP.Faceplusplus;
+import com.steven.Smartglass.FacePP.Facesetting;
 import com.steven.Smartglass.Upload.Upload;
 import com.steven.Smartglass.XunFei.Xunfei_TTS;
 import com.turing.androidsdk.HttpRequestListener;
@@ -57,6 +63,7 @@ public class ResultActivity extends Activity {
     private newCamera newCamera = null;
     private SurfaceHolder holder;
     private Gson gson;
+    private SoundPool soundPool;
     private TransApi transApi = new TransApi();
     public static final int TuringMSGwhat = 0;
     public static final int TingxieMSGwhat = 1;
@@ -65,11 +72,14 @@ public class ResultActivity extends Activity {
     public static final int ShibieMSGwhat = 4;
     public static final int ClarifaiMSGwhat = 5;
     public static final int ClarifaitrMSGwhat = 6;
+    public static final int FaceclothesMSGwhat = 7;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.result);
+        soundPool = new SoundPool(10, AudioManager.STREAM_SYSTEM, 5);
+        soundPool.load(context, R.raw.takepic, 1);
         imageView = (ImageView) findViewById(R.id.pic);
 
         facepic = (Button) findViewById(R.id.facepic);
@@ -84,6 +94,7 @@ public class ResultActivity extends Activity {
                 new Handler().postDelayed(new Runnable() {
                     public void run() {
                         newCamera.takePicture();
+                        soundPool.play(1,1,1,0,0,1);
                     }
                 }, 1000);
                 new Handler().postDelayed(new Runnable() {
@@ -123,6 +134,7 @@ public class ResultActivity extends Activity {
                                                    facepic.setVisibility(View.VISIBLE);
                                                    tv.setVisibility(View.VISIBLE);
                                                    turingtv.setVisibility(View.VISIBLE);
+                                                   soundPool.play(1,1,1,0,0,1);
                                                }
                                            }, 2000);
                                        }
@@ -183,6 +195,10 @@ public class ResultActivity extends Activity {
                                         break;
                                     }
                                 case ClarifaitrMSGwhat:
+                                    turingtv.setText(TTSmsg);
+                                    new Xunfei_TTS(context, mTts, TTSmsg, handler, mWakeuperListener);
+                                    break;
+                                case FaceclothesMSGwhat:
                                     turingtv.setText(TTSmsg);
                                     new Xunfei_TTS(context, mTts, TTSmsg, handler, mWakeuperListener);
                                     break;
@@ -342,7 +358,16 @@ public class ResultActivity extends Activity {
                 }
             }, 3000);
         } else if (TTSmsg.equals("人脸识别")) {
-            xIntent("https://api-cn.faceplusplus.com/facepp/v3/detect");
+            //xIntent("https://api-cn.faceplusplus.com/facepp/v3/detect");
+            takepic.performClick();
+            new Handler().postDelayed(new Runnable() {
+                public void run() {
+                    File file = new File(Environment.getExternalStorageDirectory(), "temp.jpeg");
+                    FaceAndColthes FaceAndColthes = new FaceAndColthes(file, handler);
+                    FaceAndColthes.start();
+                    Toast.makeText(context, "正在识别，请稍等...", Toast.LENGTH_SHORT).show();
+                }
+            }, 3000);
         } else if (TTSmsg.equals("文字识别")) {
             xIntent("https://api-cn.faceplusplus.com/imagepp/beta/recognizetext");
         } else if (TTSmsg.equals("人体识别")) {

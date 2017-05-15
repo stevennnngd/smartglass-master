@@ -3,7 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
-      <module fileurl="file://$PROJECT_DIR$/smartglass-master.iml" filepath="$PROJECT_DIR$/smartglass-master.iml" />
+      <module fileurl="file://$PROJECT_DIR$/smartglass.iml" filepath="$PROJECT_DIR$/smartglass.iml" />
     </modules>
   </component>
 </project>

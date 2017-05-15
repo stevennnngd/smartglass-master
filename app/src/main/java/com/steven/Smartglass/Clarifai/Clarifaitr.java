@@ -1,4 +1,4 @@
-package com.steven.Smartglass;
+package com.steven.Smartglass.Clarifai;
 
 import android.os.Handler;
 

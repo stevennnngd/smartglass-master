@@ -78,7 +78,7 @@ public class newCamera extends SurfaceView implements SurfaceHolder.Callback, Ca
     @Override
     public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
         Log.i(TAG, "surfaceChanged");
-       // mCamera.startPreview();
+        // mCamera.startPreview();
         setCameraParams(mCamera, mScreenWidth, mScreenHeight);
     }
 
@@ -94,7 +94,7 @@ public class newCamera extends SurfaceView implements SurfaceHolder.Callback, Ca
     @Override
     public void onAutoFocus(boolean success, Camera Camera) {
         if (success) {
-            Log.i(TAG, "onAutoFocus success="+success);
+            Log.i(TAG, "onAutoFocus success=" + success);
         }
     }
 
@@ -117,8 +117,8 @@ public class newCamera extends SurfaceView implements SurfaceHolder.Callback, Ca
         // 根据选出的PictureSize重新设置SurfaceView大小
         float w = picSize.width;
         float h = picSize.height;
-        parameters.setPictureSize(800,600);
-        this.setLayoutParams(new FrameLayout.LayoutParams((int) (height*(h/w)), height));
+        parameters.setPictureSize(800, 600);
+        this.setLayoutParams(new FrameLayout.LayoutParams((int) (height * (h / w)), height));
 
         // 获取摄像头支持的PreviewSize列表
         List<Camera.Size> previewSizeList = parameters.getSupportedPreviewSizes();
@@ -128,7 +128,7 @@ public class newCamera extends SurfaceView implements SurfaceHolder.Callback, Ca
         }
         Camera.Size preSize = getProperSize(previewSizeList, ((float) height) / width);
         if (null != preSize) {
-           // Log.i(TAG, "preSize.width=" + preSize.width + "  preSize.height=" + preSize.height);
+            // Log.i(TAG, "preSize.width=" + preSize.width + "  preSize.height=" + preSize.height);
             parameters.setPreviewSize(1920, 1080);
         }
 
@@ -147,7 +147,7 @@ public class newCamera extends SurfaceView implements SurfaceHolder.Callback, Ca
      * 从列表中选取合适的分辨率
      * 默认w:h = 4:3
      * <p>注意：这里的w对应屏幕的height
-     *            h对应屏幕的width<p/>
+     * h对应屏幕的width<p/>
      */
     private Camera.Size getProperSize(List<Camera.Size> pictureSizeList, float screenRatio) {
         //Log.i(TAG, "screenRatio=" + screenRatio);
@@ -172,7 +172,6 @@ public class newCamera extends SurfaceView implements SurfaceHolder.Callback, Ca
 
         return result;
     }
-
 
 
     // 拍照瞬间调用
@@ -204,7 +203,7 @@ public class newCamera extends SurfaceView implements SurfaceHolder.Callback, Ca
                 // 获得图片
                 bm = BitmapFactory.decodeByteArray(data, 0, data.length);
                 Matrix matrix = new Matrix();
-                matrix.setRotate(90);
+                matrix.setRotate(0);
                 bm = Bitmap.createBitmap(bm, 0, 0, bm.getWidth(), bm.getHeight(), matrix, true);
                 if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
                     Log.i(TAG, "Environment.getExternalStorageDirectory()=" + Environment.getExternalStorageDirectory());

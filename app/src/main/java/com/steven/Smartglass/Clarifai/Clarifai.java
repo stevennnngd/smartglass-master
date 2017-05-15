@@ -1,4 +1,4 @@
-package com.steven.Smartglass;
+package com.steven.Smartglass.Clarifai;
 
 import android.os.Handler;
 import android.util.Log;
@@ -46,7 +46,7 @@ public class Clarifai extends Thread {
                             .withInputs(ClarifaiInput.forImage(ClarifaiImage.of(tempFile))).executeSync().get();
 
             str = predictionResults.get(0).data().get(0).name()+ "\n";
-            for (int i = 1; i < predictionResults.get(0).data().size(); i++) {
+            for (int i = 1; i < 8; i++) {
                 str = str + predictionResults.get(0).data().get(i).name() + "\n";
             }
         } catch (Exception e) {

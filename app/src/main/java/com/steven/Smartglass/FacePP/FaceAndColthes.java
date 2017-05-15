@@ -4,6 +4,7 @@ import android.os.Handler;
 
 import com.google.gson.Gson;
 import com.steven.Smartglass.Baidutranslate.TransApi;
+import com.steven.Smartglass.Baidutranslate.TransJsonDeco;
 
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
@@ -21,112 +22,139 @@ import java.util.Random;
 
 import javax.net.ssl.SSLException;
 
-import static com.steven.Smartglass.FacePP.Facesetting.Add_facesetMSGwhat;
-import static com.steven.Smartglass.FacePP.Facesetting.ClearMSGwhat;
-import static com.steven.Smartglass.FacePP.Facesetting.GainkeyMSGwhat;
-import static com.steven.Smartglass.FacePP.Facesetting.Up_facesetMSGwhat;
+import static com.steven.Smartglass.ResultActivity.FaceclothesMSGwhat;
 
-/**
- * Created by Administrator on 2017/4/24 0024.
- */
-
-public class Faceset extends Thread {
+public class FaceAndColthes extends Thread {
 
     private File file;
-    private String url;
-    private String face_tokens;
-    private String user_id;
     private String TrScen;
     private String TrObj;
     private String Trupper;
     private String Trlower;
     private TransApi transApi = new TransApi();
     private Handler handler;
-    Gson gson = new Gson();
+    private Gson gson = new Gson();
+    private String finalstr = null;
+    private String url1 = "https://api-cn.faceplusplus.com/facepp/v3/detect";  //人脸识别
+    String gendervalue = null;
+    int agevalue = 0;
+    double smile;
+    String smiledf = null;
+    String ethnicityvalue = null;
+    String glass = null;
+    private String url2 = "https://api-cn.faceplusplus.com/humanbodypp/beta/detect";//人体识别
+    String uppervalue = null;
+    String lowervalue = null;
 
-    public Faceset(File file, String url, Handler handler, String face_tokens, String user_id) {
+    public FaceAndColthes(File file, Handler handler) {
         this.file = file;
-        this.url = url;
         this.handler = handler;
-        this.face_tokens = face_tokens;
-        this.user_id = user_id;
     }
 
     @Override
     public void run() {
+        face();
+        clothes();
+        if (agevalue != 0) {
+            finalstr = "这是一位" + glass + "大概" + agevalue + "岁，" + "穿着" + Trupper + "衣服,"
+                    + Trlower + "裤子" + smiledf + ethnicityvalue + gendervalue;
+        } else {
+            finalstr = "没有检测到人哦，请再来一次吧";
+        }
+        handler.obtainMessage(FaceclothesMSGwhat, finalstr).sendToTarget();
+    }
 
-        String finalstr = null;
+    public void face() {
+
         byte[] buff = getBytesFromFile(file);
         HashMap<String, String> map = new HashMap<>();
         HashMap<String, byte[]> byteMap = new HashMap<>();
         map.put("api_key", "cbO8a7P4P6CLfXBLJcKf8ahE0OP1b0eK");
         map.put("api_secret", "_T-Zxi2xJa-G3W4lZLq7plfdY5dV04mI");
-        if (url == "https://api-cn.faceplusplus.com/facepp/v3/detect") {  //获取key
-            byteMap.put("image_file", buff);
-        }
-        if (url == "https://api-cn.faceplusplus.com/facepp/v3/faceset/create") { //上传FaceSet
-            map.put("outer_id", "test_outer_id");
-            map.put("face_tokens", face_tokens);
-            map.put("force_merge", "1");
-        }
-        if (url == "https://api-cn.faceplusplus.com/facepp/v3/face/setuserid") { //添加user_id
-            map.put("face_token", face_tokens);
-            map.put("user_id", user_id);
-            System.out.println("---------user_id：" + user_id);
-        }
-        if (url == "https://api-cn.faceplusplus.com/facepp/v3/faceset/removeface") { //清除
-            map.put("outer_id", "test_outer_id");
-            map.put("face_tokens", "RemoveAllFaceTokens");
-        }
+        map.put("return_attributes", "gender,age,ethnicity,smiling,glass");
+        byteMap.put("image_file", buff);
 
+        byte[] bacd = new byte[0];
         try {
-            byte[] bacd = post(url, map, byteMap);
-            String str = new String(bacd);
-
-            System.out.println("服务器返回的json：" + str);
-
-            if (url == "https://api-cn.faceplusplus.com/facepp/v3/face/setuserid") { //添加user_id
-                AuserjsonDeco auserjsonDeco = gson.fromJson(str, AuserjsonDeco.class);
-                try {
-                    if ((auserjsonDeco.getError_message().getBytes().length) > 0)
-                        handler.obtainMessage(Add_facesetMSGwhat, "添加失败:" + auserjsonDeco.getError_message().getBytes()).sendToTarget();
-                } catch (Exception e) {
-                    handler.obtainMessage(Add_facesetMSGwhat, "添加成功").sendToTarget();
-                }
-            } else if (url == "https://api-cn.faceplusplus.com/facepp/v3/faceset/create") {//上传FaceSet
-                FacesetjsonDeco facesetjsonDeco = gson.fromJson(str, FacesetjsonDeco.class);
-                try {
-                    if ((facesetjsonDeco.getError_message().getBytes().length) > 0)
-                        handler.obtainMessage(Up_facesetMSGwhat, "上传失败:" + facesetjsonDeco.getError_message().getBytes()).sendToTarget();
-                } catch (Exception e) {
-                    handler.obtainMessage(Up_facesetMSGwhat, "上传成功").sendToTarget();
-                }
-            } else if (url == "https://api-cn.faceplusplus.com/facepp/v3/detect") {//获取key
-                String face_tokens = null;
-                FacejsonDeco facejsonDeco = gson.fromJson(str, FacejsonDeco.class);
-                try {
-                    if (facejsonDeco.getFaces().size() > 0) {
-                        face_tokens = facejsonDeco.getFaces().get(0).getFace_token();
-                        handler.obtainMessage(GainkeyMSGwhat, face_tokens).sendToTarget();
-                    }else {
-                        handler.obtainMessage(GainkeyMSGwhat, "没有检测到人脸").sendToTarget();
-                    }
-                } catch (Exception e) {
-                    handler.obtainMessage(GainkeyMSGwhat, "并发数限制").sendToTarget();
-                }
-            } else if (url == "https://api-cn.faceplusplus.com/facepp/v3/faceset/removeface") { //清除
-                ClearjsonDeco clearjsonDeco = gson.fromJson(str, ClearjsonDeco.class);
-                try {
-                    if ((clearjsonDeco.getError_message().getBytes().length) > 0)
-                        handler.obtainMessage(ClearMSGwhat, "清除失败:" + clearjsonDeco.getError_message().getBytes()).sendToTarget();
-                } catch (Exception e) {
-                    handler.obtainMessage(ClearMSGwhat, "清除成功").sendToTarget();
-                }
-            } else {
-                handler.obtainMessage(GainkeyMSGwhat, "传入的URL错误").sendToTarget();
-            }
+            bacd = post(url1, map, byteMap);
         } catch (Exception e) {
             e.printStackTrace();
+        }
+        String str = new String(bacd);
+        System.out.println("服务器返回的json：" + str);
+
+
+        FacejsonDeco facejsonDeco = gson.fromJson(str, FacejsonDeco.class);
+        try {
+            if (facejsonDeco.getFaces().size() > 0) {
+                gendervalue = facejsonDeco.getFaces().get(0).getAttributes().getGender().getValue();
+                if (gendervalue.equals("Male")) {
+                    gendervalue = "男性";
+                } else
+                    gendervalue = "女性";
+                agevalue = facejsonDeco.getFaces().get(0).getAttributes().getAge().getValue();
+                ethnicityvalue = facejsonDeco.getFaces().get(0).getAttributes().getEthnicity().getValue();
+                if (ethnicityvalue.equals("Asian")) {
+                    ethnicityvalue = "亚洲";
+                } else if (ethnicityvalue.equals("White")) {
+                    ethnicityvalue = "白人";
+                } else
+                    ethnicityvalue = "黑人";
+                smile = facejsonDeco.getFaces().get(0).getAttributes().getSmile().getValue();
+                if (smile < 20) {
+                    smiledf = "微笑着的";
+                } else if (smile < 60) {
+                    smiledf = "浅笑着的";
+                } else {
+                    smiledf = "大笑着的";
+                }
+                glass = facejsonDeco.getFaces().get(0).getAttributes().getGlass().getValue();
+                if (glass.equals("None")) {
+                    glass = "";
+                } else if (glass.equals("Dark")) {
+                    glass = "佩戴黑框眼镜或墨镜,";
+                } else
+                    glass = "佩戴普通眼镜,";
+            }
+        } catch (Exception e) {
+            handler.obtainMessage(FaceclothesMSGwhat, "没有检测到可识别的人脸,请再来一次吧").sendToTarget();
+        }
+
+    }
+
+    public void clothes() {
+
+        byte[] buff = getBytesFromFile(file);
+        HashMap<String, String> map = new HashMap<>();
+        HashMap<String, byte[]> byteMap = new HashMap<>();
+        map.put("api_key", "cbO8a7P4P6CLfXBLJcKf8ahE0OP1b0eK");
+        map.put("api_secret", "_T-Zxi2xJa-G3W4lZLq7plfdY5dV04mI");
+        map.put("return_attributes", "gender,cloth_color");
+        byteMap.put("image_file", buff);
+
+        byte[] bacd = new byte[0];
+        try {
+            bacd = post(url2, map, byteMap);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        String str = new String(bacd);
+        System.out.println("服务器返回的json：" + str);
+        BodyjsonDeco bodyjsonDeco = gson.fromJson(str, BodyjsonDeco.class);
+        try {
+            if ((bodyjsonDeco.getHumanbodies().size()) > 0) {
+                uppervalue = bodyjsonDeco.getHumanbodies().get(0).getAttributes().getUpper_body_cloth_color();
+                lowervalue = bodyjsonDeco.getHumanbodies().get(0).getAttributes().getLower_body_cloth_color();
+                Trupper = transApi.getTransResult(uppervalue, "en", "zh");
+                TransJsonDeco upperJsonDeco = gson.fromJson(Trupper, TransJsonDeco.class);
+                Trupper = upperJsonDeco.getTrans_result().get(0).getDst();
+
+                Trlower = transApi.getTransResult(lowervalue, "en", "zh");
+                TransJsonDeco lowerJsonDeco = gson.fromJson(Trlower, TransJsonDeco.class);
+                Trlower = lowerJsonDeco.getTrans_result().get(0).getDst();
+            }
+        } catch (Exception e) {
+            handler.obtainMessage(FaceclothesMSGwhat, "没有检测到人体,请再来一次吧").sendToTarget();
         }
     }
 
@@ -229,5 +257,5 @@ public class Faceset extends Thread {
         }
         return null;
     }
-}
 
+}
