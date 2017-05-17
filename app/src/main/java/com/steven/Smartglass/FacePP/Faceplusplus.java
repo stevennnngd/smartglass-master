@@ -153,6 +153,9 @@ public class Faceplusplus extends Thread {
                     handler.obtainMessage(FaceppMSGwhat, finalstr).sendToTarget();
                 }
             } else if (url == "https://api-cn.faceplusplus.com/imagepp/beta/recognizetext") {//文字识别处理
+
+                //https://api-cn.faceplusplus.com/imagepp/beta/recognizetext
+                //https://api-cn.faceplusplus.com/imagepp/v1/recognizetext
                 String type = "";
                 String textvalue = "";
                 ArrayList<Textorder> textorder = new ArrayList<Textorder>();
@@ -175,7 +178,7 @@ public class Faceplusplus extends Thread {
                     });
                     for (Textorder e : textorder) {
                         System.out.println("Y :" + e.getY() + "   文字:" + e.getTextorder());
-                        textvalue = textvalue + e.getTextorder() + ",";
+                        textvalue = textvalue + e.getTextorder();
                     }
                     finalstr = textvalue;
                     handler.obtainMessage(FaceppMSGwhat, finalstr).sendToTarget();

@@ -78,6 +78,11 @@ public class ResultActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.result);
+        //初始化讯飞语音
+        SpeechUtility.createUtility(this, SpeechConstant.APPID + "=58f0e555");
+        final SpeechSynthesizer mTts = SpeechSynthesizer.createSynthesizer(context, null);
+        final VoiceWakeuper mIvw = VoiceWakeuper.createWakeuper(context, null);
+
         soundPool = new SoundPool(10, AudioManager.STREAM_SYSTEM, 5);
         soundPool.load(context, R.raw.takepic, 1);
         imageView = (ImageView) findViewById(R.id.pic);
@@ -94,7 +99,8 @@ public class ResultActivity extends Activity {
                 new Handler().postDelayed(new Runnable() {
                     public void run() {
                         newCamera.takePicture();
-                        soundPool.play(1,1,1,0,0,1);
+                        //soundPool.play(1,1,1,0,0,1);
+                        new Xunfei_TTS(context, mTts, "正在识别，请稍等", handler, mWakeuperListener);
                     }
                 }, 1000);
                 new Handler().postDelayed(new Runnable() {
@@ -134,7 +140,8 @@ public class ResultActivity extends Activity {
                                                    facepic.setVisibility(View.VISIBLE);
                                                    tv.setVisibility(View.VISIBLE);
                                                    turingtv.setVisibility(View.VISIBLE);
-                                                   soundPool.play(1,1,1,0,0,1);
+                                                   //soundPool.play(1,1,1,0,0,1);
+                                                   new Xunfei_TTS(context, mTts, "正在识别，请稍等", handler, mWakeuperListener);
                                                }
                                            }, 2000);
                                        }
@@ -147,10 +154,6 @@ public class ResultActivity extends Activity {
         tv.setMovementMethod(ScrollingMovementMethod.getInstance());
         turingtv = (TextView) findViewById(R.id.turing);
         turingtv.setMovementMethod(ScrollingMovementMethod.getInstance());
-        //初始化讯飞语音
-        SpeechUtility.createUtility(this, SpeechConstant.APPID + "=58f0e555");
-        final SpeechSynthesizer mTts = SpeechSynthesizer.createSynthesizer(context, null);
-        final VoiceWakeuper mIvw = VoiceWakeuper.createWakeuper(context, null);
 
         handler = new
 
